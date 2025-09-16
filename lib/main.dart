@@ -1,5 +1,8 @@
 // main.dart
 import 'package:flutter/material.dart';
+import 'models/resume_data.dart';
+import 'ResumePreviewScreen.dart';
+
 
 void main() => runApp(const MyApp());
 
@@ -28,6 +31,9 @@ class ResumeFormScreen extends StatefulWidget {
 
 class _ResumeFormScreenState extends State<ResumeFormScreen> {
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController titleController = TextEditingController();
+
   final TextEditingController summaryController = TextEditingController();
 
   // dynamic lists for education/work/projects/certifications
@@ -201,7 +207,7 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                 const SizedBox(width: 12),
                 Text(
                   title,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
                 ),
               ],
             ),
@@ -298,6 +304,25 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
 
               const SizedBox(height: 18),
 
+              _sectionCard(
+                title: 'Personal Information',
+                icon: Icons.person,
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      decoration: _fieldDecoration('Full Name', icon: Icons.badge),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: titleController,
+                      decoration: _fieldDecoration('Professional Title', icon: Icons.work),
+                    ),
+                  ],
+                ),
+              ),
+
+
               // Summary
               _sectionCard(
                 title: 'Summary',
@@ -356,7 +381,7 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                       child: TextButton.icon(
                         onPressed: addEducation,
                         icon: const Icon(Icons.add),
-                        label: const Text('Add Education'),
+                        label: const Text('Add Education',style: TextStyle(color: Colors.black),),
                       ),
                     ),
                   ],
@@ -401,8 +426,9 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                     }),
                     Align(
                       alignment: Alignment.centerRight,
-                      child: TextButton.icon(onPressed: addWork, icon: const Icon(Icons.add), label: const Text('Add Experience')),
+                      child: TextButton.icon(onPressed: addWork, icon: const Icon(Icons.add), label: const Text('Add Experience',style: TextStyle(color: Colors.black),),
                     ),
+                    )
                   ],
                 ),
               ),
@@ -477,7 +503,7 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                     }),
                     Align(
                       alignment: Alignment.centerRight,
-                      child: TextButton.icon(onPressed: addCertification, icon: const Icon(Icons.add), label: const Text('Add Certification')),
+                      child: TextButton.icon(onPressed: addCertification, icon: const Icon(Icons.add), label: const Text('Add Certification',style: TextStyle(color: Colors.black),)),
                     ),
                   ],
                 ),
@@ -519,7 +545,7 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                     }),
                     Align(
                       alignment: Alignment.centerRight,
-                      child: TextButton.icon(onPressed: addProject, icon: const Icon(Icons.add), label: const Text('Add Project')),
+                      child: TextButton.icon(onPressed: addProject, icon: const Icon(Icons.add), label: const Text('Add Project',style: TextStyle(color: Colors.black),)),
                     ),
                   ],
                 ),
@@ -535,7 +561,7 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                       children: [
                         Expanded(child: TextField(controller: achievementController, decoration: _fieldDecoration('Add an achievement'))),
                         const SizedBox(width: 8),
-                        ElevatedButton(onPressed: addAchievement, child: const Text('Add')),
+                        ElevatedButton(onPressed: addAchievement, child: const Text('Add',style: TextStyle(color: Colors.black),)),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -560,23 +586,106 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
 
               const SizedBox(height: 24),
 
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: validate & go to preview/export
-                    if (_formKey.currentState?.validate() ?? false) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Open Preview — not implemented yet')));
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preview not implemented — form validated')));
-                    }
-                  },
-                  icon: const Icon(Icons.picture_as_pdf),
-                  label: const Text('Preview Resume', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                  style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        // ✅ Reset everything
+                        summaryController.clear();
+                        skillController.clear();
+                        achievementController.clear();
+                        skills.clear();
+                        achievements.clear();
+
+                        for (final e in education) {
+                          e.values.forEach((c) => c.clear());
+                        }
+                        for (final w in work) {
+                          w.values.forEach((c) => c.clear());
+                        }
+                        for (final c in certifications) {
+                          c.values.forEach((ctl) => ctl.clear());
+                        }
+                        for (final p in projects) {
+                          p.values.forEach((ctl) => ctl.clear());
+                        }
+
+                        setState(() {}); // refresh UI
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Form reset successfully")),
+                        );
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text(
+                        'Reset',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                      style: ElevatedButton.styleFrom(
+
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        final resumeData = ResumeData(
+                          name: nameController.text,      // add this
+                          title: titleController.text,    // add this
+                          summary: summaryController.text,
+                          education: education.map((e) => {
+                            "institution": e["institution"]!.text,
+                            "degree": e["degree"]!.text,
+                            "year": e["year"]!.text,
+                          }).toList(),
+                          work: work.map((w) => {
+                            "company": w["company"]!.text,
+                            "role": w["role"]!.text,
+                            "duration": w["duration"]!.text,
+                            "responsibilities": w["responsibilities"]!.text,
+                          }).toList(),
+                          certifications: certifications.map((c) => {
+                            "name": c["name"]!.text,
+                            "issuer": c["issuer"]!.text,
+                            "year": c["year"]!.text,
+                          }).toList(),
+                          projects: projects.map((p) => {
+                            "title": p["title"]!.text,
+                            "description": p["description"]!.text,
+                            "link": p["link"]!.text,
+                          }).toList(),
+                          skills: skills,
+                          achievements: achievements,
+                        );
+
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ResumePreviewScreen(resumeData: resumeData),
+                          ),
+                        );
+                      },
+
+                      icon: const Icon(Icons.picture_as_pdf),
+                      label: const Text(
+                        'Preview ',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
+
 
               const SizedBox(height: 30),
             ],
